@@ -35,7 +35,7 @@
   </header>
   <main class="section-block">
     <div class="container">
-      <form action="#">
+      <form id="checkout-form">
         <div class="row g-4">
           <div class="col-lg-8">
             <div class="checkout-card">
@@ -72,10 +72,9 @@
           <div class="col-lg-4">
             <div class="summary-card">
               <h2 class="summary-title h5">Order Review</h2>
-              <div class="summary-row"><span>Valorant Points</span><strong>PKR 5,490</strong></div>
-              <div class="summary-row"><span>Rocket League Credits</span><strong>PKR 6,950</strong></div>
-              <div class="summary-row"><span>Service fee</span><strong>PKR 100</strong></div>
-              <div class="summary-row summary-total"><span>Total</span><strong>PKR 12,540</strong></div><button
+              <div id="checkout-items"></div>
+              <div class="summary-row"><span>Service fee</span><strong id="checkout-fee">PKR 0</strong></div>
+              <div class="summary-row summary-total"><span>Total</span><strong id="checkout-total">PKR 0</strong></div><button
                 class="btn btn-accent w-100 mt-3">Submit Order</button><a href="cart.html"
                 class="btn btn-darkline w-100 mt-2">Edit Cart</a>
             </div>
@@ -84,6 +83,56 @@
       </form>
     </div>
   </main>
+  <script src="store.js"></script>
+  <script>
+    storeRequest('/cart').then((items) => {
+      const summary = document.querySelector('#checkout-items');
+      if (!items.length) {
+        summary.innerHTML = '<div class="summary-row"><span>Your cart is empty</span><strong>PKR 0</strong></div>';
+        return;
+      }
+      summary.innerHTML = items.map((item) => `<div class="summary-row"><span>${item.name} × ${item.quantity}</span><strong>PKR ${item.total.toLocaleString()}</strong></div>`).join('');
+      const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+      document.querySelector('#checkout-items').insertAdjacentHTML('beforeend', `<div class="summary-row"><span>Subtotal</span><strong>PKR ${subtotal.toLocaleString()}</strong></div>`);
+      document.querySelector('#checkout-fee').textContent = 'PKR 100';
+      document.querySelector('#checkout-total').textContent = `PKR ${(subtotal + 100).toLocaleString()}`;
+    }).catch(() => showStoreMessage('Start the backend to load your order summary.', true));
+
+    document.querySelector('#checkout-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fields = event.currentTarget.querySelectorAll('input, select');
+      try {
+        const items = await storeRequest('/cart');
+        if (!items.length) {
+          showStoreMessage('Your cart is empty. Add a product before submitting an order.', true);
+          return;
+        }
+        const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+        const order = await storeRequest('/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            customer: {
+              firstName: fields[0].value,
+              lastName: fields[1].value,
+              email: fields[2].value,
+              lootifyUsername: fields[3].value,
+              platform: fields[4].value,
+              region: fields[5].value,
+              gameAccountId: fields[6].value,
+            },
+            items,
+            subtotal,
+            serviceFee: 100,
+            total: subtotal + 100,
+          }),
+        });
+        showStoreMessage(`Order #${order.id} submitted successfully.`);
+        event.currentTarget.reset();
+      } catch (error) {
+        showStoreMessage('Could not submit the order. Check that the backend is running and your cart has items.', true);
+      }
+    });
+  </script>
 </body>
 
 </html>
