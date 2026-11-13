@@ -49,26 +49,7 @@
                     <th></th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td class="ps-4"><strong>2,050 Valorant Points</strong>
-                      <div class="section-copy small">Valorant</div>
-                    </td>
-                    <td>PKR 5,490</td>
-                    <td><input class="form-control quantity-input" type="number" value="1" min="1"></td>
-                    <td><strong>PKR 5,490</strong></td>
-                    <td><a class="remove-link" href="#">Remove</a></td>
-                  </tr>
-                  <tr>
-                    <td class="ps-4"><strong>3,000 Rocket League Credits</strong>
-                      <div class="section-copy small">Rocket League</div>
-                    </td>
-                    <td>PKR 6,950</td>
-                    <td><input class="form-control quantity-input" type="number" value="1" min="1"></td>
-                    <td><strong>PKR 6,950</strong></td>
-                    <td><a class="remove-link" href="#">Remove</a></td>
-                  </tr>
-                </tbody>
+                <tbody id="cart-items"></tbody>
               </table>
             </div>
             <div class="d-flex justify-content-between flex-wrap gap-3 p-4 border-top"
@@ -79,15 +60,31 @@
         <div class="col-lg-4">
           <div class="summary-card">
             <h2 class="summary-title h5">Order Summary</h2>
-            <div class="summary-row"><span>Subtotal</span><strong>PKR 12,440</strong></div>
-            <div class="summary-row"><span>Service fee</span><strong>PKR 100</strong></div>
-            <div class="summary-row summary-total"><span>Total</span><strong>PKR 12,540</strong></div><a
+            <div class="summary-row"><span>Subtotal</span><strong id="cart-subtotal">PKR 0</strong></div>
+            <div class="summary-row"><span>Service fee</span><strong id="cart-fee">PKR 0</strong></div>
+            <div class="summary-row summary-total"><span>Total</span><strong id="cart-total">PKR 0</strong></div><a
               href="checkout.html" class="btn btn-accent w-100 mt-3">Proceed to Checkout</a>
           </div>
         </div>
       </div>
     </div>
   </main>
+  <script src="store.js"></script>
+  <script>
+    storeRequest('/cart').then((items) => {
+      const body = document.querySelector('#cart-items');
+      if (!items.length) {
+        body.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Your cart is empty. Browse the marketplace to add products.</td></tr>';
+        return;
+      }
+      body.innerHTML = items.map((item) => `<tr><td class="ps-4"><strong>${item.name}</strong><div class="section-copy small">${item.game}</div></td><td>PKR ${item.price.toLocaleString()}</td><td>${item.quantity}</td><td><strong>PKR ${item.total.toLocaleString()}</strong></td><td></td></tr>`).join('');
+      const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+      const fee = 100;
+      document.querySelector('#cart-subtotal').textContent = `PKR ${subtotal.toLocaleString()}`;
+      document.querySelector('#cart-fee').textContent = `PKR ${fee.toLocaleString()}`;
+      document.querySelector('#cart-total').textContent = `PKR ${(subtotal + fee).toLocaleString()}`;
+    }).catch(() => showStoreMessage('Start the backend to view your cart.', true));
+  </script>
 </body>
 
 </html>

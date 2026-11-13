@@ -1,17 +1,28 @@
 {
   "name": "lootify-backend",
   "version": "1.0.0",
-  "description": "Persistent REST API for Lootify e-commerce store",
-  "main": "server.js",
+  "description": "Beginner-friendly NestJS REST API for the Lootify store",
+  "private": true,
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts"
   },
   "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.0"
   }
 }
